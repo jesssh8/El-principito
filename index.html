@@ -98,7 +98,9 @@ body{display:flex;align-items:center;justify-content:center}
 #sPause h2,.shopHead h2{margin:0;font-family:'Caveat',cursive;font-weight:700;font-size:calc(var(--u)*44);color:#C56F52}
 #sShop{justify-content:flex-start;gap:calc(var(--u)*10)}
 .shopHead{display:flex;width:100%;justify-content:space-between;align-items:center}
-#shopList{display:flex;flex-direction:column;gap:calc(var(--u)*12);width:100%;flex:1;justify-content:center}
+#shopList{display:flex;flex-direction:column;gap:calc(var(--u)*12);width:100%;flex:1;min-height:0;justify-content:flex-start;overflow-y:auto;touch-action:pan-y;padding:calc(var(--u)*4) calc(var(--u)*4) calc(var(--u)*8);scrollbar-width:none}
+#shopList::-webkit-scrollbar{display:none}
+.shopRow{flex:none}
 .shopRow{display:flex;align-items:center;gap:calc(var(--u)*10);padding:calc(var(--u)*8) calc(var(--u)*12)}
 .shopRow.eq{outline:calc(var(--u)*3) dashed #E39A7A;outline-offset:calc(var(--u)*2)}
 .shopRow canvas{width:calc(var(--u)*56);height:calc(var(--u)*70);flex:none}
@@ -202,14 +204,14 @@ const INK='#6E574B';
 const $=id=>document.getElementById(id);
 
 /* ================= GUARDADO ================= */
-const save={coins:0,best:0,unlocked:[true,false,false,false],equipped:0,sound:true};
+const save={coins:0,best:0,unlocked:[true,false,false,false,false],equipped:0,sound:true};
 let dirty=false;
 function load(){
   try{
     const s=JSON.parse(localStorage.getItem(KEY)||'null');
     if(s){
       save.coins=s.coins|0; save.best=s.best|0;
-      if(Array.isArray(s.unlocked)) for(let i=0;i<4;i++) save.unlocked[i]=!!s.unlocked[i];
+      if(Array.isArray(s.unlocked)) for(let i=0;i<5;i++) save.unlocked[i]=!!s.unlocked[i];
       save.unlocked[0]=true;
       save.equipped=(s.equipped|0); if(!save.unlocked[save.equipped]) save.equipped=0;
       save.sound=s.sound!==false;
@@ -278,18 +280,61 @@ const OUT=[
   {name:'Pequeño viajero',tunic:'#F1DEC4',tunic2:'#DDBF98',scarf:'#F6B7A2',tail:'#F6B7A2',hair:'#C79C6E',shoe:'#C98A66',kind:0},
   {name:'El Principito',price:200,tunic:'#A9C9A0',tunic2:'#86AB8B',scarf:'#F8DA7E',tail:'#F8DA7E',hair:'#F7D56C',shoe:'#C98A66',kind:1},
   {name:'Príncipe de las estrellas',price:350,tunic:'#B8D3EE',tunic2:'#93B6DA',scarf:'#FFF6EA',tail:'#8B82C6',cape:'#8B82C6',hair:'#F7D56C',shoe:'#8B82C6',kind:2},
-  {name:'El aviador soñador',price:470,tunic:'#D9926F',tunic2:'#BC7350',scarf:'#FFF6EA',tail:'#FFF6EA',cap:'#A9764F',hair:'#F7D56C',shoe:'#8A5B3F',kind:3}
+  {name:'El aviador soñador',price:470,tunic:'#D9926F',tunic2:'#BC7350',scarf:'#FFF6EA',tail:'#FFF6EA',cap:'#A9764F',hair:'#F7D56C',shoe:'#8A5B3F',kind:3},
+    {name:'El zorro',price:600,tunic:'#E9A67A',tunic2:'#FFF1DE',scarf:'#D98E6B',tail:'#D98E6B',hair:'#E9A67A',shoe:'#B8785C',kind:4}
 ];
 const LETTERS=[
   '',
   'Se que ya lo sabes, pero en verdad me encanta mucho tu sonrisa.',
   'No sabes lo mucho que te amo. pero eso no te salva de que trafique tu órganos',
-  'Que no se te olvide nunca lo importante que eres para mí, viejita enojona.'
+  'Que no se te olvide nunca lo importante que eres para mí, viejita enojona.',
+  'Aunque fueras calva te seguiria amando'
 ];
 
 function drawChar(c,o,seed){
   setSeed(seed);
   const cx=32,fy=76,skin='#FDE4D0';
+    if(o.kind===4){
+    const fur=o.tunic,cream=o.tunic2,dark=o.shoe,ear='#F6C4B0';
+    // cola esponjosa (atrás; al voltear el personaje queda siempre detrás)
+    shape(c,[{x:cx-9,y:fy-14},{x:cx-18,y:fy-26},{x:cx-27,y:fy-23},{x:cx-30,y:fy-12},{x:cx-24,y:fy-4},{x:cx-13,y:fy-5}],fur);
+    shape(c,ellP(cx-25.5,fy-10,4.6,6.2,rr,8),cream,{pen:false});
+    curve(c,[{x:cx-23,y:fy-19},{x:cx-18,y:fy-13},{x:cx-21,y:fy-7}],INK,.9,.35);
+    // patitas, cuerpo y pancita
+    shape(c,ellP(cx-8,fy-3.5,6.5,4.2,rr,8),dark);
+    shape(c,ellP(cx+8,fy-3.5,6.5,4.2,rr,8),dark);
+    shape(c,ellP(cx,fy-21,13,17.5,rr,12,.04),fur);
+    shape(c,ellP(cx,fy-19,7.5,12,rr,10,.04),cream,{pen:false,a:.95});
+    // bracitos con manitas oscuras
+    shape(c,ellP(cx-14.5,fy-22,4.4,7.2,rr,8),fur);
+    shape(c,ellP(cx+14.5,fy-22,4.4,7.2,rr,8),fur);
+    hl(c,cx-15,fy-16,3,2.6,dark,.85);hl(c,cx+15,fy-16,3,2.6,dark,.85);
+    // bufanda (de aquí sale la cinta que ondea al saltar)
+    shape(c,ellP(cx,fy-36,12.5,4.8,rr,10),o.scarf);
+    // orejas grandes y puntiagudas (detrás de la cabeza)
+    shape(c,[{x:cx-15,y:fy-56},{x:cx-17,y:fy-66},{x:cx-12,y:fy-75},{x:cx-6,y:fy-66},{x:cx-5,y:fy-57}],fur);
+    shape(c,[{x:cx+15,y:fy-56},{x:cx+17,y:fy-66},{x:cx+12,y:fy-75},{x:cx+6,y:fy-66},{x:cx+5,y:fy-57}],fur);
+    shape(c,[{x:cx-13,y:fy-58},{x:cx-14,y:fy-65},{x:cx-11.5,y:fy-70},{x:cx-8,y:fy-65},{x:cx-8,y:fy-59}],ear,{pen:false,edge:false,a:.9});
+    shape(c,[{x:cx+13,y:fy-58},{x:cx+14,y:fy-65},{x:cx+11.5,y:fy-70},{x:cx+8,y:fy-65},{x:cx+8,y:fy-59}],ear,{pen:false,edge:false,a:.9});
+    hl(c,cx-12,fy-71,2,2.6,dark,.5);hl(c,cx+12,fy-71,2,2.6,dark,.5);
+    // cabeza, mejillas y hocico crema
+    shape(c,ellP(cx,fy-49,16,15,rr,14,.03),fur);
+    hl(c,cx,fy-58,3.2,4.5,cream,.7);
+    shape(c,ellP(cx-8,fy-42,8,5.5,rr,9),cream,{pen:false,edge:false,a:.95});
+    shape(c,ellP(cx+8,fy-42,8,5.5,rr,9),cream,{pen:false,edge:false,a:.95});
+    shape(c,ellP(cx,fy-40.5,6.5,5,rr,9),cream,{pen:false,edge:false,a:.95});
+    // carita
+    const ey=fy-50;
+    shape(c,ellP(cx-6,ey,2.2,3,rr,7,.02),'#4A3A3A',{pen:false,edge:false,a:1});
+    shape(c,ellP(cx+6,ey,2.2,3,rr,7,.02),'#4A3A3A',{pen:false,edge:false,a:1});
+    hl(c,cx-5.4,ey-1.1,.9,.9,'#fff',1);hl(c,cx+6.6,ey-1.1,.9,.9,'#fff',1);
+    shape(c,ellP(cx,fy-44.5,2.3,1.7,rr,7,.02),'#4A3A3A',{pen:false,edge:false,a:1});
+    curve(c,[{x:cx,y:fy-43},{x:cx,y:fy-41.6}],'#8A4E48',1,.85);
+    curve(c,[{x:cx-3.2,y:fy-41.3},{x:cx,y:fy-39.6},{x:cx+3.2,y:fy-41.3}],'#8A4E48',1.1,.85);
+    hl(c,cx-11.5,fy-45,3.2,2.2,'#F49AAA',.6);hl(c,cx+11.5,fy-45,3.2,2.2,'#F49AAA',.6);
+    curve(c,[{x:cx-13,y:fy-42.5},{x:cx-19,y:fy-43.5}],INK,.7,.4);curve(c,[{x:cx+13,y:fy-42.5},{x:cx+19,y:fy-43.5}],INK,.7,.4);
+    return;
+  }
   if(o.cape){
     shape(c,[{x:cx-13,y:fy-42},{x:cx+13,y:fy-42},{x:cx+22,y:fy-10},{x:cx+4,y:fy-2},{x:cx-6,y:fy-4},{x:cx-22,y:fy-10}],o.cape,{a:.92});
     [[-12,-22],[10,-16],[-4,-10],[14,-28]].forEach(p=>hl(c,cx+p[0],fy+p[1],1.7,1.7,'#FFE9A6',.95));
@@ -772,7 +817,7 @@ function openShop(){renderShop();show('sShop');}
 function renderShop(){
   $('shCoins').textContent=save.coins;
   const L=$('shopList');L.innerHTML='';
-  for(let i=1;i<=3;i++){
+  for(let i=1;i<OUT.length;i++){
     const o=OUT[i],un=save.unlocked[i];
     const row=document.createElement('div');row.className='card shopRow'+(save.equipped===i?' eq':'');
     row.innerHTML=`<canvas width="128" height="160"></canvas><div class="info"><div class="nm">${o.name}</div><div class="ds">${un?'Carta desbloqueada':'Desbloquea una carta ilustrada'}</div></div><div class="acts"></div>`;
@@ -794,10 +839,12 @@ function buy(i){
 }
 function illus(i,cv){
   const c=cv.getContext('2d');c.setTransform(2,0,0,2,0,0);c.clearRect(0,0,280,150);setSeed(50+i);
-  const bg=[null,['#FBD9C8','#F6B9C8'],['#5B549A','#8A80C4'],['#BFE0EE','#F6D5DD']][i];
+  const bg=[null,['#FBD9C8','#F6B9C8'],['#5B549A','#8A80C4'],['#BFE0EE','#F6D5DD'],['#FFE6BE','#F8C9A6']][i];
+  const ground=[null,'#A9C9A0','#7C74B8','#A9C9A0','#EBD08C'][i];
   shape(c,rectP(4,4,272,142,26,rr,3),bg[0],{a:.92,pen:false});
   shape(c,ellP(200,60,92,62,rr,10,.12),bg[1],{a:.7,pen:false,edge:false});
-  shape(c,ellP(80,142,70,9,rr,10,.1),i===2?'#7C74B8':'#A9C9A0',{a:.8,pen:false,edge:false});
+  if(i===4)spr(c,SP.sun,148,-14,.72);
+  shape(c,ellP(80,142,70,9,rr,10,.1),ground,{a:.8,pen:false,edge:false});
   c.drawImage(SP.chars[i],38,26,90,112.5);
   if(i===1){
     for(let k=0;k<14;k++){const a=k/14*6.283;c.save();c.translate(205+Math.cos(a)*40,66+Math.sin(a)*40);c.rotate(a);
@@ -818,13 +865,26 @@ function illus(i,cv){
     for(const [x,y,r] of [[150,86,-.5],[178,110,.5]]){c.save();c.translate(x,y);c.rotate(r);shape(c,ellP(0,0,13,7.5,rr,12,.03),'#E7889A');hl(c,-3,-2,4,2,'#FFD4DC',.8);c.restore();}
     c.drawImage(SP.heart,150,30,26,28);c.drawImage(SP.heart,236,100,22,24);
     [[140,16],[250,20],[120,60]].forEach((p,k)=>c.drawImage(SP.spark[k%3],p[0],p[1],14,14));
-  } else {
+  } else if(i===3){
     spr(c,SP.cloud[0][1],140,16,1.15);
     curve(c,[{x:172,y:56},{x:184,y:62}],'#5B4338',2.2,.9);curve(c,[{x:220,y:62},{x:232,y:56}],'#5B4338',2.2,.9);
     hl(c,184,68,3,3.4,'#5B4338',.9);hl(c,220,68,3,3.4,'#5B4338',.9);
     hl(c,172,78,7,4,'#F49AAA',.6);hl(c,232,78,7,4,'#F49AAA',.6);
     curve(c,[{x:192,y:86},{x:202,y:80},{x:212,y:86}],'#5B4338',2,.9);
     c.drawImage(SP.heart,236,20,20,22);c.drawImage(SP.heart,146,104,18,20);c.drawImage(SP.heart,250,96,16,18);
+  } else {
+    // campo de trigo dorado (el color del pelo del Principito)
+    const wheat=(x,base,top,lean)=>{
+      curve(c,[{x:x,y:base},{x:x+lean*.4,y:(base+top)/2},{x:x+lean,y:top}],'#C9A65A',1.4,.9);
+      hl(c,x+lean,top-3,2.6,5,'#F2CF70',.95);
+      hl(c,x+lean-2.4,top+1,2.2,4,'#EBC45E',.9);hl(c,x+lean+2.4,top+1,2.2,4,'#EBC45E',.9);
+      curve(c,[{x:x+lean,y:top-8},{x:x+lean,y:top-11}],'#C9A65A',.9,.8);
+    };
+    for(let k=0;k<20;k++){const x=142+k*6.4+rr()*3,top=88+rr()*24;wheat(x,148,top,(rr()-.5)*8);}
+    for(let k=0;k<6;k++){const x=22+k*7+rr()*3,top=122+rr()*8;wheat(x,148,top,(rr()-.5)*6);}
+    c.drawImage(SP.heart,146,26,24,26);c.drawImage(SP.heart,244,22,18,20);
+    [[130,12],[196,20],[258,64]].forEach((p,k)=>c.drawImage(SP.spark[k%3],p[0],p[1],15,15));
+    c.drawImage(SP.star,120,54,20,21);
   }
 }
 function openLetter(i){
