@@ -201,20 +201,21 @@ const W=360,H=640;
 const REVIVE_COST=10;
 const BL=14000;                 // altura (px) de cada bioma: se tarda bastante en cada uno
 const G=0.42,JUMP=12.6,SPRING=19.5,MAXVX=4.6,HW=14,PS=0.8;
+const PLANE=SPRING*Math.sqrt(9);
 const KEY='amy_principito_v1';
 const INK='#6E574B';
 const $=id=>document.getElementById(id);
 
 /* ================= GUARDADO ================= */
-const save={coins:0,best:0,unlocked:[true,false,false,false,false],equipped:0,sound:true};
+const save={coins:0,best:0,unlocked:[true],equipped:0,sound:true};
 let dirty=false;
 function load(){
   try{
     const s=JSON.parse(localStorage.getItem(KEY)||'null');
     if(s){
       save.coins=s.coins|0; save.best=s.best|0;
-      if(Array.isArray(s.unlocked)) for(let i=0;i<5;i++) save.unlocked[i]=!!s.unlocked[i];
-      save.unlocked[0]=true;
+      const unlocked=Array.isArray(s.unlocked)?s.unlocked:[];
+      save.unlocked=Array.from({length:OUT.length},(_,i)=>i===0||!!unlocked[i]);
       save.equipped=(s.equipped|0); if(!save.unlocked[save.equipped]) save.equipped=0;
       save.sound=s.sound!==false;
     }
@@ -278,65 +279,39 @@ function mk(w,h,fn){const cv=document.createElement('canvas');cv.width=Math.ceil
   const c=cv.getContext('2d');c.scale(S,S);cv.lw=w;cv.lh=h;fn(c,w,h);return cv;}
 function spr(c,cv,x,y,s){s=s||1;c.drawImage(cv,x,y,cv.lw*s,cv.lh*s);}
 
+/* Plantilla para futuros personajes:
+{
+  name:'Nombre', price:700,
+  tunic:'#', tunic2:'#', scarf:'#', tail:'#', hair:'#', shoe:'#',
+  draw:(c,o,cx,fy)=>{ // sprite 64x80, pies en fy=76, bufanda fy-36, cabeza fy-49; usar solo shape/ellP/rectP/hl/curve, pasteles cálidos, ojos ovalados con brillo, mejillas rosadas
+  },
+  letter:'Texto de la carta',
+  bg:['#','#'], ground:'#',
+  scene:(c)=>{ // canvas 280x150, personaje a la izquierda
+  }
+}
+*/
 const OUT=[
-  {name:'Pequeño viajero',tunic:'#F1DEC4',tunic2:'#DDBF98',scarf:'#F6B7A2',tail:'#F6B7A2',hair:'#C79C6E',shoe:'#C98A66',kind:0},
-  {name:'El Principito',price:200,tunic:'#A9C9A0',tunic2:'#86AB8B',scarf:'#F8DA7E',tail:'#F8DA7E',hair:'#F7D56C',shoe:'#C98A66',kind:1},
-  {name:'Príncipe de las estrellas',price:350,tunic:'#B8D3EE',tunic2:'#93B6DA',scarf:'#FFF6EA',tail:'#8B82C6',cape:'#8B82C6',hair:'#F7D56C',shoe:'#8B82C6',kind:2},
-  {name:'El aviador soñador',price:470,tunic:'#D9926F',tunic2:'#BC7350',scarf:'#FFF6EA',tail:'#FFF6EA',cap:'#A9764F',hair:'#F7D56C',shoe:'#8A5B3F',kind:3},
-    {name:'El zorro',price:600,tunic:'#E9A67A',tunic2:'#FFF1DE',scarf:'#D98E6B',tail:'#D98E6B',hair:'#E9A67A',shoe:'#B8785C',kind:4}
-];
-const LETTERS=[
-  '',
-  'Se que ya lo sabes, pero en verdad me encanta mucho tu sonrisa.',
-  'No sabes lo mucho que te amo. pero eso no te salva de que trafique tu órganos',
-  'Que no se te olvide nunca lo importante que eres para mí, viejita enojona.',
-  'Aunque fueras calva te seguiria amando'
+  {name:'Pequeño viajero',tunic:'#F1DEC4',tunic2:'#DDBF98',scarf:'#F6B7A2',tail:'#F6B7A2',hair:'#C79C6E',shoe:'#C98A66',kind:0,letter:'',bg:['#FBD9C8','#F6B9C8'],ground:'#A9C9A0'},
+  {name:'El Principito',price:200,tunic:'#A9C9A0',tunic2:'#86AB8B',scarf:'#F8DA7E',tail:'#F8DA7E',hair:'#F7D56C',shoe:'#C98A66',kind:1,letter:'Se que ya lo sabes, pero en verdad me encanta mucho tu sonrisa.',bg:['#FBD9C8','#F6B9C8'],ground:'#A9C9A0'},
+  {name:'Príncipe de las estrellas',price:350,tunic:'#B8D3EE',tunic2:'#93B6DA',scarf:'#FFF6EA',tail:'#8B82C6',cape:'#8B82C6',hair:'#F7D56C',shoe:'#8B82C6',kind:2,letter:'No sabes lo mucho que te amo. pero eso no te salva de que trafique tu órganos',bg:['#5B549A','#8A80C4'],ground:'#7C74B8'},
+  {name:'El aviador soñador',price:470,tunic:'#D9926F',tunic2:'#BC7350',scarf:'#FFF6EA',tail:'#FFF6EA',cap:'#A9764F',hair:'#F7D56C',shoe:'#8A5B3F',kind:3,letter:'Que no se te olvide nunca lo importante que eres para mí, viejita enojona.',bg:['#BFE0EE','#F6D5DD'],ground:'#A9C9A0'},
+    {name:'El zorro',price:600,tunic:'#E9A67A',tunic2:'#FFF1DE',scarf:'#D98E6B',tail:'#D98E6B',hair:'#E9A67A',shoe:'#B8785C',kind:4,letter:'Aunque fueras calva te seguiria amando',bg:['#FFE6BE','#F8C9A6'],ground:'#EBD08C',draw:(c,o,cx,fy)=>{
+      const fur=o.tunic,cream=o.tunic2,dark=o.shoe,ear='#F6C4B0';
+      shape(c,[{x:cx-9,y:fy-14},{x:cx-18,y:fy-26},{x:cx-27,y:fy-23},{x:cx-30,y:fy-12},{x:cx-24,y:fy-4},{x:cx-13,y:fy-5}],fur);shape(c,ellP(cx-25.5,fy-10,4.6,6.2,rr,8),cream,{pen:false});curve(c,[{x:cx-23,y:fy-19},{x:cx-18,y:fy-13},{x:cx-21,y:fy-7}],INK,.9,.35);
+      shape(c,ellP(cx-8,fy-3.5,6.5,4.2,rr,8),dark);shape(c,ellP(cx+8,fy-3.5,6.5,4.2,rr,8),dark);shape(c,ellP(cx,fy-21,13,17.5,rr,12,.04),fur);shape(c,ellP(cx,fy-19,7.5,12,rr,10,.04),cream,{pen:false,a:.95});
+      shape(c,ellP(cx-14.5,fy-22,4.4,7.2,rr,8),fur);shape(c,ellP(cx+14.5,fy-22,4.4,7.2,rr,8),fur);hl(c,cx-15,fy-16,3,2.6,dark,.85);hl(c,cx+15,fy-16,3,2.6,dark,.85);shape(c,ellP(cx,fy-36,12.5,4.8,rr,10),o.scarf);
+      shape(c,[{x:cx-15,y:fy-56},{x:cx-17,y:fy-66},{x:cx-12,y:fy-75},{x:cx-6,y:fy-66},{x:cx-5,y:fy-57}],fur);shape(c,[{x:cx+15,y:fy-56},{x:cx+17,y:fy-66},{x:cx+12,y:fy-75},{x:cx+6,y:fy-66},{x:cx+5,y:fy-57}],fur);
+      shape(c,[{x:cx-13,y:fy-58},{x:cx-14,y:fy-65},{x:cx-11.5,y:fy-70},{x:cx-8,y:fy-65},{x:cx-8,y:fy-59}],ear,{pen:false,edge:false,a:.9});shape(c,[{x:cx+13,y:fy-58},{x:cx+14,y:fy-65},{x:cx+11.5,y:fy-70},{x:cx+8,y:fy-65},{x:cx+8,y:fy-59}],ear,{pen:false,edge:false,a:.9});hl(c,cx-12,fy-71,2,2.6,dark,.5);hl(c,cx+12,fy-71,2,2.6,dark,.5);
+      shape(c,ellP(cx,fy-49,16,15,rr,14,.03),fur);hl(c,cx,fy-58,3.2,4.5,cream,.7);shape(c,ellP(cx-8,fy-42,8,5.5,rr,9),cream,{pen:false,edge:false,a:.95});shape(c,ellP(cx+8,fy-42,8,5.5,rr,9),cream,{pen:false,edge:false,a:.95});shape(c,ellP(cx,fy-40.5,6.5,5,rr,9),cream,{pen:false,edge:false,a:.95});
+      const ey=fy-50;shape(c,ellP(cx-6,ey,2.2,3,rr,7,.02),'#4A3A3A',{pen:false,edge:false,a:1});shape(c,ellP(cx+6,ey,2.2,3,rr,7,.02),'#4A3A3A',{pen:false,edge:false,a:1});hl(c,cx-5.4,ey-1.1,.9,.9,'#fff',1);hl(c,cx+6.6,ey-1.1,.9,.9,'#fff',1);shape(c,ellP(cx,fy-44.5,2.3,1.7,rr,7,.02),'#4A3A3A',{pen:false,edge:false,a:1});curve(c,[{x:cx,y:fy-43},{x:cx,y:fy-41.6}],'#8A4E48',1,.85);curve(c,[{x:cx-3.2,y:fy-41.3},{x:cx,y:fy-39.6},{x:cx+3.2,y:fy-41.3}],'#8A4E48',1.1,.85);hl(c,cx-11.5,fy-45,3.2,2.2,'#F49AAA',.6);hl(c,cx+11.5,fy-45,3.2,2.2,'#F49AAA',.6);curve(c,[{x:cx-13,y:fy-42.5},{x:cx-19,y:fy-43.5}],INK,.7,.4);curve(c,[{x:cx+13,y:fy-42.5},{x:cx+19,y:fy-43.5}],INK,.7,.4);
+    },scene:(c)=>{const wheat=(x,base,top,lean)=>{curve(c,[{x:x,y:base},{x:x+lean*.4,y:(base+top)/2},{x:x+lean,y:top}],'#C9A65A',1.4,.9);hl(c,x+lean,top-3,2.6,5,'#F2CF70',.95);hl(c,x+lean-2.4,top+1,2.2,4,'#EBC45E',.9);hl(c,x+lean+2.4,top+1,2.2,4,'#EBC45E',.9);curve(c,[{x:x+lean,y:top-8},{x:x+lean,y:top-11}],'#C9A65A',.9,.8);};for(let k=0;k<20;k++){const x=142+k*6.4+rr()*3,top=88+rr()*24;wheat(x,148,top,(rr()-.5)*8);}for(let k=0;k<6;k++){const x=22+k*7+rr()*3,top=122+rr()*8;wheat(x,148,top,(rr()-.5)*6);}c.drawImage(SP.heart,146,26,24,26);c.drawImage(SP.heart,244,22,18,20);[[130,12],[196,20],[258,64]].forEach((p,k)=>c.drawImage(SP.spark[k%3],p[0],p[1],15,15));c.drawImage(SP.star,120,54,20,21);}}
 ];
 
 function drawChar(c,o,seed){
   setSeed(seed);
   const cx=32,fy=76,skin='#FDE4D0';
-    if(o.kind===4){
-    const fur=o.tunic,cream=o.tunic2,dark=o.shoe,ear='#F6C4B0';
-    // cola esponjosa (atrás; al voltear el personaje queda siempre detrás)
-    shape(c,[{x:cx-9,y:fy-14},{x:cx-18,y:fy-26},{x:cx-27,y:fy-23},{x:cx-30,y:fy-12},{x:cx-24,y:fy-4},{x:cx-13,y:fy-5}],fur);
-    shape(c,ellP(cx-25.5,fy-10,4.6,6.2,rr,8),cream,{pen:false});
-    curve(c,[{x:cx-23,y:fy-19},{x:cx-18,y:fy-13},{x:cx-21,y:fy-7}],INK,.9,.35);
-    // patitas, cuerpo y pancita
-    shape(c,ellP(cx-8,fy-3.5,6.5,4.2,rr,8),dark);
-    shape(c,ellP(cx+8,fy-3.5,6.5,4.2,rr,8),dark);
-    shape(c,ellP(cx,fy-21,13,17.5,rr,12,.04),fur);
-    shape(c,ellP(cx,fy-19,7.5,12,rr,10,.04),cream,{pen:false,a:.95});
-    // bracitos con manitas oscuras
-    shape(c,ellP(cx-14.5,fy-22,4.4,7.2,rr,8),fur);
-    shape(c,ellP(cx+14.5,fy-22,4.4,7.2,rr,8),fur);
-    hl(c,cx-15,fy-16,3,2.6,dark,.85);hl(c,cx+15,fy-16,3,2.6,dark,.85);
-    // bufanda (de aquí sale la cinta que ondea al saltar)
-    shape(c,ellP(cx,fy-36,12.5,4.8,rr,10),o.scarf);
-    // orejas grandes y puntiagudas (detrás de la cabeza)
-    shape(c,[{x:cx-15,y:fy-56},{x:cx-17,y:fy-66},{x:cx-12,y:fy-75},{x:cx-6,y:fy-66},{x:cx-5,y:fy-57}],fur);
-    shape(c,[{x:cx+15,y:fy-56},{x:cx+17,y:fy-66},{x:cx+12,y:fy-75},{x:cx+6,y:fy-66},{x:cx+5,y:fy-57}],fur);
-    shape(c,[{x:cx-13,y:fy-58},{x:cx-14,y:fy-65},{x:cx-11.5,y:fy-70},{x:cx-8,y:fy-65},{x:cx-8,y:fy-59}],ear,{pen:false,edge:false,a:.9});
-    shape(c,[{x:cx+13,y:fy-58},{x:cx+14,y:fy-65},{x:cx+11.5,y:fy-70},{x:cx+8,y:fy-65},{x:cx+8,y:fy-59}],ear,{pen:false,edge:false,a:.9});
-    hl(c,cx-12,fy-71,2,2.6,dark,.5);hl(c,cx+12,fy-71,2,2.6,dark,.5);
-    // cabeza, mejillas y hocico crema
-    shape(c,ellP(cx,fy-49,16,15,rr,14,.03),fur);
-    hl(c,cx,fy-58,3.2,4.5,cream,.7);
-    shape(c,ellP(cx-8,fy-42,8,5.5,rr,9),cream,{pen:false,edge:false,a:.95});
-    shape(c,ellP(cx+8,fy-42,8,5.5,rr,9),cream,{pen:false,edge:false,a:.95});
-    shape(c,ellP(cx,fy-40.5,6.5,5,rr,9),cream,{pen:false,edge:false,a:.95});
-    // carita
-    const ey=fy-50;
-    shape(c,ellP(cx-6,ey,2.2,3,rr,7,.02),'#4A3A3A',{pen:false,edge:false,a:1});
-    shape(c,ellP(cx+6,ey,2.2,3,rr,7,.02),'#4A3A3A',{pen:false,edge:false,a:1});
-    hl(c,cx-5.4,ey-1.1,.9,.9,'#fff',1);hl(c,cx+6.6,ey-1.1,.9,.9,'#fff',1);
-    shape(c,ellP(cx,fy-44.5,2.3,1.7,rr,7,.02),'#4A3A3A',{pen:false,edge:false,a:1});
-    curve(c,[{x:cx,y:fy-43},{x:cx,y:fy-41.6}],'#8A4E48',1,.85);
-    curve(c,[{x:cx-3.2,y:fy-41.3},{x:cx,y:fy-39.6},{x:cx+3.2,y:fy-41.3}],'#8A4E48',1.1,.85);
-    hl(c,cx-11.5,fy-45,3.2,2.2,'#F49AAA',.6);hl(c,cx+11.5,fy-45,3.2,2.2,'#F49AAA',.6);
-    curve(c,[{x:cx-13,y:fy-42.5},{x:cx-19,y:fy-43.5}],INK,.7,.4);curve(c,[{x:cx+13,y:fy-42.5},{x:cx+19,y:fy-43.5}],INK,.7,.4);
-    return;
-  }
+  if(o.draw){ o.draw(c,o,cx,fy); return; }
   if(o.cape){
     shape(c,[{x:cx-13,y:fy-42},{x:cx+13,y:fy-42},{x:cx+22,y:fy-10},{x:cx+4,y:fy-2},{x:cx-6,y:fy-4},{x:cx-22,y:fy-10}],o.cape,{a:.92});
     [[-12,-22],[10,-16],[-4,-10],[14,-28]].forEach(p=>hl(c,cx+p[0],fy+p[1],1.7,1.7,'#FFE9A6',.95));
@@ -459,6 +434,18 @@ function buildSprites(){
     shape(c,ellP(51,21,10,9,rr,10),or);
     shape(c,[{x:44,y:16},{x:46,y:4},{x:52,y:14}],or);shape(c,[{x:52,y:13},{x:58,y:5},{x:59,y:17}],or);
     hl(c,58,25,4,3,cr,.9);hl(c,62,24.5,1.5,1.3,'#4A3A3A',1);hl(c,53,19,1.3,1.6,'#4A3A3A',1);});
+  SP.planeUp=mk(84,46,c=>{setSeed(21);
+    shape(c,[{x:5,y:6},{x:16,y:8},{x:22,y:21},{x:9,y:23}],'#F4A9BB');
+    shape(c,ellP(15,27.5,9,2.8,rr,8),'#A9C9A0');
+    shape(c,[{x:68,y:17},{x:56,y:14.5},{x:40,y:15},{x:24,y:18},{x:10,y:22.5},{x:9,y:26.5},{x:24,y:31},{x:40,y:34.5},{x:56,y:34.5},{x:68,y:32.5},{x:72,y:25}],'#FFE6A8');
+    hl(c,44,19,18,2.6,'#FFF7DA',.85);hl(c,44,30.5,24,2.4,'#F4A9BB',.8);
+    shape(c,ellP(70,25,6.5,8.5,rr,10),'#E4A585');hl(c,69,22,2.6,3.2,'#F6CDB4',.85);
+    shape(c,ellP(44,29,19,4,rr,10),'#A9C9A0');
+    shape(c,ellP(54,21.5,6,4.6,rr,9),'#D9EEF6',{a:.95});hl(c,52.5,20,1.8,1.3,'#FFFFFF',.95);
+    curve(c,[{x:52,y:32},{x:55,y:38}],INK,1.4,.75);curve(c,[{x:14,y:28},{x:15,y:33}],INK,1.1,.65);
+    shape(c,ellP(55,40,4.4,4.4,rr,9),'#8A6E5D');hl(c,55,40,1.5,1.5,'#E9D9C6',.9);
+    shape(c,ellP(15,35,2.6,2.6,rr,8),'#8A6E5D');hl(c,78,25,2,2,'#6E574B',.9);
+  });
   SP.plane=mk(90,46,c=>{setSeed(12);
     shape(c,[{x:4,y:14},{x:16,y:22},{x:14,y:30},{x:2,y:24}],'#F4A9BB');
     shape(c,ellP(46,28,32,9,rr,12,.03),'#FFF3E4');hl(c,46,29,26,3,'#F4A9BB',.6);
@@ -616,7 +603,7 @@ function drawBG(h){
 
 /* ================= JUEGO ================= */
 let state='menu',camY=0,maxH=0,topY=0,plats=[],items=[],parts=[],runStars=0,curB=-1,frameN=0,input=0;
-const P={x:W/2,y:580,vx:0,vy:0,face:1,sq:0};
+const P={x:W/2,y:580,vx:0,vy:0,face:1,sq:0,fly:0};
 const MENU_Y=430;
 const mkPlat=(x,y,w,type)=>({x,y,w,type,dir:Math.random()<.5?-1:1,sp:.8,broken:false,bt:0,fy:0,spring:false,pop:0});
 
@@ -629,18 +616,22 @@ function genRow(){
   if(h>2200&&Math.random()<.12+d*.18)type=1;
   const p=mkPlat(x,topY,w,type);p.sp=.7+d*1.5+Math.random()*.4;
   if(type===0&&h>800&&Math.random()<.07)p.spring=true;
+  else if(type===0&&h>2000&&Math.random()<.005)p.plane=true;
   plats.push(p);
   if(h>3500&&Math.random()<.2+d*.2)plats.push(mkPlat(rand(8,W-w-8),topY+gap*rand(.35,.65),w,2));
   const r=Math.random();
-  if(r<.05){items.push({k:0,x:x+w/2,y:topY-44,ph:Math.random()*6});}
-  else if(r<.5)items.push({k:0,x:rand(24,W-24),y:topY+gap*.5,ph:0});
-  if(Math.random()<.055)items.push({k:1,x:rand(30,W-30),y:topY+gap*.45,ph:0});
+  const hasStar=r<.5,hasHeart=Math.random()<.055,side=Math.random()<.5?-1:1;
+  const pairGap=rand(32,42);
+  const starX=x+w/2+(hasStar&&hasHeart?side*pairGap/2:rand(-w*.3,w*.3));
+  const heartX=x+w/2-(hasStar&&hasHeart?side*pairGap/2:0);
+  if(hasStar)items.push({k:0,x:starX,y:topY-44,ph:r<.05?Math.random()*6:0});
+  if(hasHeart)items.push({k:1,x:heartX,y:topY-44,ph:0});
 }
 function reset(){
   camY=0;maxH=0;plats=[];items=[];parts=[];runStars=0;curB=-1;
   plats.push(mkPlat(W/2-45,580,90,0));topY=580;
   while(topY>camY-300)genRow();
-  Object.assign(P,{x:W/2,y:580,vx:0,vy:-JUMP,face:1,sq:0});
+  Object.assign(P,{x:W/2,y:580,vx:0,vy:-JUMP,face:1,sq:0,fly:0});
 }
 function burst(x,y,cols,n,sp,up){
   for(let i=0;i<n&&parts.length<120;i++)parts.push({x,y,vx:(Math.random()-.5)*sp,vy:-Math.random()*sp*(up||.8),life:0,max:28+Math.random()*22,c:cols[i%cols.length],s:1.8+Math.random()*2.6});
@@ -651,7 +642,8 @@ function updateParts(){
 }
 function land(p){
   P.y=p.y;let v=JUMP;
-  if(p.spring&&Math.abs(P.x-(p.x+p.w/2))<20){v=SPRING;p.pop=1;sfx('spring');burst(P.x,P.y,['#F5A4B8','#F8DA7A','#FFFFFF'],14,5,1.2);}
+  if(p.plane){v=PLANE;p.plane=false;P.fly=1;sfx('spring');burst(P.x,P.y,['#FFF3E4','#F4B8C4','#F8DA7A','#FFFFFF'],22,7,1.4);}
+  else if(p.spring&&Math.abs(P.x-(p.x+p.w/2))<20){v=SPRING;p.pop=1;sfx('spring');burst(P.x,P.y,['#F5A4B8','#F8DA7A','#FFFFFF'],14,5,1.2);}
   else sfx('jump');
   if(p.type===2){p.broken=true;p.bt=0;v*=.85;sfx('crumble');burst(p.x+p.w/2,p.y,['#F0D8C0','#E2B99B'],10,3,.6);}
   P.vy=-v;P.sq=1;
@@ -679,6 +671,7 @@ function step(){
   P.x+=P.vx;
   if(P.x<-12)P.x=W+12;else if(P.x>W+12)P.x=-12;
   const prev=P.y;P.vy=Math.min(P.vy+G,16);P.y+=P.vy;
+  if(P.fly&&P.vy>0)P.fly=0;
   for(const p of plats){
     if(p.type===1&&!p.broken){p.x+=p.dir*p.sp;if(p.x<4){p.x=4;p.dir=1;}else if(p.x>W-p.w-4){p.x=W-p.w-4;p.dir=-1;}}
     if(p.broken){p.bt++;p.fy=p.bt*p.bt*.12;}
@@ -721,14 +714,22 @@ function drawPlat(p,bi){
     ctx.drawImage(sp,-p.w/2-5*k,-7,sp.lw*k,sp.lh);ctx.restore();return;
   }
   if(p.spring){const s=1+.45*p.pop;spr_(SP.spring,p.x+p.w/2-13,y-27*s+2,1,s);}
+  if(p.plane)drawPlaneAt(p.x+p.w/2-36,y-36,.85);
   ctx.drawImage(sp,p.x-5*k,y-7,sp.lw*k,sp.lh);
+}
+function drawPlaneAt(x,y,s){
+  ctx.drawImage(SP.planeUp,x,y,SP.planeUp.lw*s,SP.planeUp.lh*s);
+  const px=x+78*s,py=y+25*s,ry=(4+7*Math.abs(Math.cos(time*38)))*s;
+  ctx.save();ctx.globalAlpha=.4;ctx.fillStyle='#8A6E5D';ctx.beginPath();ctx.ellipse(px,py,2*s,ry,0,0,6.283);ctx.fill();ctx.restore();
 }
 function spr_(cv,x,y,sx,sy){ctx.drawImage(cv,x,y,cv.lw*sx,cv.lh*sy);}
 function drawPlayerAt(x,y){
   const o=OUT[save.equipped],sp=SP.chars[save.equipped];
   ctx.save();ctx.translate(x,y-camY);ctx.rotate(clamp(P.vx*.035,-.25,.25));
-  const stretch=clamp(-P.vy*.008,0,.1);
-  ctx.scale(P.face*(1+.18*P.sq-stretch),1-.18*P.sq+stretch);
+  const stretch=P.fly?clamp(-P.vy*.002,0,.025):clamp(-P.vy*.008,0,.1);
+  const squash=P.fly?.04:.18;
+  ctx.scale(P.face*(1+squash*P.sq-stretch),1-squash*P.sq+stretch);
+  if(P.fly)drawPlaneAt(-36,-15,.85);
   // cola de la bufanda / capa
   const ty=-29*PS/.8,len=16+Math.abs(P.vx)*3,fl=clamp(P.vy*1.3,-10,10)+Math.sin(time*12)*2;
   ctx.fillStyle=o.tail;ctx.globalAlpha=.95;ctx.beginPath();ctx.moveTo(-7,ty);
@@ -855,14 +856,13 @@ function buy(i){
 }
 function illus(i,cv){
   const c=cv.getContext('2d');c.setTransform(2,0,0,2,0,0);c.clearRect(0,0,280,150);setSeed(50+i);
-  const bg=[null,['#FBD9C8','#F6B9C8'],['#5B549A','#8A80C4'],['#BFE0EE','#F6D5DD'],['#FFE6BE','#F8C9A6']][i];
-  const ground=[null,'#A9C9A0','#7C74B8','#A9C9A0','#EBD08C'][i];
+  const o=OUT[i],bg=o.bg||[null,['#FBD9C8','#F6B9C8'],['#5B549A','#8A80C4'],['#BFE0EE','#F6D5DD'],['#FFE6BE','#F8C9A6']][i];
+  const ground=o.ground||( [null,'#A9C9A0','#7C74B8','#A9C9A0','#EBD08C'][i] );
   shape(c,rectP(4,4,272,142,26,rr,3),bg[0],{a:.92,pen:false});
   shape(c,ellP(200,60,92,62,rr,10,.12),bg[1],{a:.7,pen:false,edge:false});
-  if(i===4)spr(c,SP.sun,148,-14,.72);
   shape(c,ellP(80,142,70,9,rr,10,.1),ground,{a:.8,pen:false,edge:false});
   c.drawImage(SP.chars[i],38,26,90,112.5);
-  if(i===1){
+  if(o.scene) o.scene(c); else if(i===1){
     for(let k=0;k<14;k++){const a=k/14*6.283;c.save();c.translate(205+Math.cos(a)*40,66+Math.sin(a)*40);c.rotate(a);
       shape(c,ellP(0,0,12,5.5,rr,8),'#F8D66E');c.restore();}
     shape(c,ellP(205,66,31,31,rr,14,.02),'#FADF8A');
@@ -888,23 +888,10 @@ function illus(i,cv){
     hl(c,172,78,7,4,'#F49AAA',.6);hl(c,232,78,7,4,'#F49AAA',.6);
     curve(c,[{x:192,y:86},{x:202,y:80},{x:212,y:86}],'#5B4338',2,.9);
     c.drawImage(SP.heart,236,20,20,22);c.drawImage(SP.heart,146,104,18,20);c.drawImage(SP.heart,250,96,16,18);
-  } else {
-    // campo de trigo dorado (el color del pelo del Principito)
-    const wheat=(x,base,top,lean)=>{
-      curve(c,[{x:x,y:base},{x:x+lean*.4,y:(base+top)/2},{x:x+lean,y:top}],'#C9A65A',1.4,.9);
-      hl(c,x+lean,top-3,2.6,5,'#F2CF70',.95);
-      hl(c,x+lean-2.4,top+1,2.2,4,'#EBC45E',.9);hl(c,x+lean+2.4,top+1,2.2,4,'#EBC45E',.9);
-      curve(c,[{x:x+lean,y:top-8},{x:x+lean,y:top-11}],'#C9A65A',.9,.8);
-    };
-    for(let k=0;k<20;k++){const x=142+k*6.4+rr()*3,top=88+rr()*24;wheat(x,148,top,(rr()-.5)*8);}
-    for(let k=0;k<6;k++){const x=22+k*7+rr()*3,top=122+rr()*8;wheat(x,148,top,(rr()-.5)*6);}
-    c.drawImage(SP.heart,146,26,24,26);c.drawImage(SP.heart,244,22,18,20);
-    [[130,12],[196,20],[258,64]].forEach((p,k)=>c.drawImage(SP.spark[k%3],p[0],p[1],15,15));
-    c.drawImage(SP.star,120,54,20,21);
   }
 }
 function openLetter(i){
-  illus(i,$('lCv'));$('lTxt').textContent=LETTERS[i];
+  illus(i,$('lCv'));$('lTxt').textContent=OUT[i].letter;
   const s=$('sLetter');s.classList.remove('on');void s.offsetWidth;s.classList.add('on');sfx('buy');
 }
 
