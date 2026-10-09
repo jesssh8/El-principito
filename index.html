@@ -433,7 +433,7 @@ function drawChar(c,o,seed){
   curve(c,[{x:cx-2.5,y:fy-42},{x:cx,y:fy-40.2},{x:cx+2.5,y:fy-42}],'#8A4E48',1.1,.85);
 }
 
-const PAL=[{t:'#F8DDBE',b:'#DE9772'},{t:'#DCEBD2',b:'#9CBF9F'},{t:'#FFFAF6',b:'#F6D0D7'},{t:'#E3DBF6',b:'#AB9EDA'}];
+const PAL=[{t:'#F8DDBE',b:'#DE9772'},{t:'#DCEBD2',b:'#9CBF9F'},{t:'#FFFAF6',b:'#F6D0D7'},{t:'#FFE9A8',b:'#D9873D'},{t:'#E3DBF6',b:'#AB9EDA'}]
 function platBody(c,bi,x,y,w,h,col){
   if(bi===0) shape(c,rectP(x,y,w,h,6,rr,1.2),col);
   else if(bi===1) shape(c,ellP(x+w/2,y+h/2,w/2,h/2+1,rr,14,.05),col);
@@ -442,7 +442,8 @@ function platBody(c,bi,x,y,w,h,col){
     shape(c,ellP(x+w*.27,y+5,w*.2,7,rr,10),col);
     shape(c,ellP(x+w*.55,y+3,w*.25,8.5,rr,10),col);
     shape(c,ellP(x+w*.82,y+6,w*.15,6,rr,10),col);
-  } else shape(c,ellP(x+w/2,y+h/2,w/2,h/2+1,rr,11,.09),col);
+  } else if(bi===3){shape(c,rectP(x,y+1,w,h-3,6,rr,1),col);shape(c,ellP(x+w/2,y+h-1,w*.36,3.5,rr,9),shade(col,-22));}
+  else shape(c,ellP(x+w/2,y+h/2,w/2,h/2+1,rr,11,.09),col);
 }
 function platSprite(bi,type){
   return mk(82,32,c=>{
@@ -454,7 +455,7 @@ function platSprite(bi,type){
     hl(c,x+w/2,y+h*.32,w*.36,h*.2,pal.t,.75);
     if(bi===0&&type!==2){ curve(c,[{x:x+12,y:y+11},{x:x+20,y:y+10}],INK,1,.45); curve(c,[{x:x+50,y:y+11},{x:x+60,y:y+10}],INK,1,.45); }
     if(bi===1) curve(c,[{x:x+8,y:y+h/2},{x:x+w/2,y:y+h/2+1},{x:x+w-8,y:y+h/2-1}],'#6E8F73',1.1,.7);
-    if(bi===3){ hl(c,x+18,y+9,3,2,shade(pal.b,-30),.7); hl(c,x+50,y+10,2.4,1.6,shade(pal.b,-30),.7); }
+    if(bi===4){ hl(c,x+18,y+9,3,2,shade(pal.b,-30),.7); hl(c,x+50,y+10,2.4,1.6,shade(pal.b,-30),.7); }
     if(type===1){
       curve(c,[{x:x+11,y:y+4},{x:x+6,y:y+8},{x:x+11,y:y+12}],INK,1.5,.8);
       curve(c,[{x:x+w-11,y:y+4},{x:x+w-6,y:y+8},{x:x+w-11,y:y+12}],INK,1.5,.8);
@@ -466,7 +467,7 @@ function platSprite(bi,type){
   });
 }
 function buildSprites(){
-  SP.plat=[];for(let b=0;b<4;b++)SP.plat.push([0,1,2].map(t=>platSprite(b,t)));
+  buildLanternSprites();SP.plat=[];for(let b=0;b<5;b++)SP.plat.push([0,1,2].map(t=>platSprite(b,t)));
   SP.star=mk(32,34,c=>{setSeed(7);
     const g=c.createRadialGradient(16,17,2,16,17,16);g.addColorStop(0,'rgba(255,236,150,.6)');g.addColorStop(1,'rgba(255,236,150,0)');
     c.fillStyle=g;c.fillRect(0,0,32,34);
@@ -584,11 +585,12 @@ const BIO=[
   {n:'El desierto al atardecer',top:'#C9B7E6',mid:'#F6BDC8',bot:'#FFD8A2'},
   {n:'Aves que cruzan el cielo',top:'#A6D3EA',mid:'#CDE8F1',bot:'#FFF0DA'},
   {n:'El mar de nubes',top:'#D6BCEA',mid:'#F7C5D5',bot:'#FFE1C6'},
+  {n:'El mar de faroles',top:'#6E4FA0',mid:'#C77FAE',bot:'#FFC9A0'},
   {n:'Cosmos y el asteroide B612',top:'#25224E',mid:'#3D3977',bot:'#6C60A8'}
 ].map(b=>({...b,r:[b.top,b.mid,b.bot].map(toRGB)}));
 function biomeState(h){
   const f=h/BL,i=Math.floor(f);
-  if(i>=3) return {i:3,n:3,s:0};
+  if(i>=4) return {i:4,n:4,s:0};
   const t=f-i;
   return {i,n:i+1,s:t>.78?sm((t-.78)/.22):0};
 }
@@ -617,7 +619,56 @@ function bird(bx,by,f,col){
   }
   ctx.restore();
 }
+/* ===== BIOMA 5: EL MAR DE FAROLES ===== */
+const LN_A=mkItems(14,640),LN_B=mkItems(10,640),LN_C=mkItems(7,640),LN_S=mkItems(18,640),LN_K=mkItems(4,640);
+function buildLanternSprites(){
+  const cols=[['#FFD36B','#FFF1B8','255,214,120'],['#F7A8B8','#FFE0E6','255,170,190'],['#FFBE94','#FFE6D0','255,190,150']];
+  SP.lant=cols.map((k,i)=>mk(44,64,c=>{
+    setSeed(400+i);
+    const g=c.createRadialGradient(22,30,3,22,30,22);
+    g.addColorStop(0,'rgba('+k[2]+',.75)');g.addColorStop(1,'rgba('+k[2]+',0)');
+    c.fillStyle=g;c.fillRect(0,0,44,64);
+    shape(c,ellP(22,29,11,15,rr,12,.03),k[0]);
+    hl(c,22,31,6,9,k[1],.8);
+    curve(c,[{x:22,y:14},{x:17,y:29},{x:22,y:44}],INK,.8,.4);
+    curve(c,[{x:22,y:14},{x:27,y:29},{x:22,y:44}],INK,.8,.4);
+    shape(c,rectP(17,11,10,4,1.5,rr,.3),shade(k[0],-30),{a:.95});
+    shape(c,rectP(17,43,10,4,1.5,rr,.3),shade(k[0],-30),{a:.95});
+    curve(c,[{x:22,y:47},{x:20,y:52},{x:22,y:57}],INK,.8,.5);
+    shape(c,ellP(22,59,1.8,1.8,rr,6),'#FFF1B8',{pen:false,edge:false});
+  }));
+}
+function drawLanterns(a,h){
+  if(a<=.01)return;
+  ctx.save();
+  // resplandor del horizonte
+  ctx.globalAlpha=a*.6;spr(ctx,SP.sun,W*.5-120,H-210,1);
+  // nubes violetas del fondo
+  tile(LN_K,640,.08,h,(it,y)=>{ctx.globalAlpha=a*.5;cloudAt(it,y,2,.9,.25);});
+  // faroles en 3 capas (lejos, medio, cerca)
+  const lay=(items,par,U,sc,al)=>tile(items,640,par,h-time*U,(it,y)=>{
+    const x=it.x+Math.sin(time*.6+it.ph)*10;
+    const yy=y+Math.sin(time*.9+it.ph*2)*4;
+    const gl=.6+.4*Math.sin(time*(.7+it.sp*.05)+it.ph);
+    ctx.globalAlpha=a*al*gl;
+    spr(ctx,SP.lant[it.t],x-22*sc*it.s,yy,sc*it.s);
+  });
+  lay(LN_A,.12,150,.55,.6);
+  lay(LN_B,.25,100,.8,.85);
+  // destellos dorados
+  tile(LN_S,640,.3,h-time*40,(it,y)=>{
+    ctx.globalAlpha=a*(.4+.6*Math.abs(Math.sin(time*2+it.ph)));
+    spr(ctx,SP.spark[it.t],it.x,y,it.s*.8);
+  });
+  lay(LN_C,.5,60,1.15,1);
+  // farol grande especial que sube de vez en cuando
+  const bt=mod(time,16)/16;
+  ctx.globalAlpha=a*.95;
+  spr(ctx,SP.lant[0],W*.7+Math.sin(time)*8-53,H+60-bt*(H+220),2.4);
+  ctx.restore();
+}
 function scenery(bi,a,h){
+  if(bi===3){drawLanterns(a,h);return;}
   if(a<=.01)return;
   ctx.save();ctx.globalAlpha=a;
   if(bi===0){
@@ -689,7 +740,7 @@ function genRow(){
   if(h>2200&&Math.random()<.12+d*.18)type=1;
   const p=mkPlat(x,topY,w,type);p.sp=.7+d*1.5+Math.random()*.4;
   if(type===0&&h>800&&Math.random()<.07)p.spring=true;
-  else if(type===0&&h>800&&Math.random()<.03)p.plane=true;
+  else if(type===0&&h>800&&Math.random()<.02)p.plane=true;
   plats.push(p);
   if(h>3500&&Math.random()<.2+d*.2)plats.push(mkPlat(rand(8,W-w-8),topY+gap*rand(.35,.65),w,2));
   const r=Math.random();
