@@ -304,7 +304,81 @@ const OUT=[
       shape(c,[{x:cx-13,y:fy-58},{x:cx-14,y:fy-65},{x:cx-11.5,y:fy-70},{x:cx-8,y:fy-65},{x:cx-8,y:fy-59}],ear,{pen:false,edge:false,a:.9});shape(c,[{x:cx+13,y:fy-58},{x:cx+14,y:fy-65},{x:cx+11.5,y:fy-70},{x:cx+8,y:fy-65},{x:cx+8,y:fy-59}],ear,{pen:false,edge:false,a:.9});hl(c,cx-12,fy-71,2,2.6,dark,.5);hl(c,cx+12,fy-71,2,2.6,dark,.5);
       shape(c,ellP(cx,fy-49,16,15,rr,14,.03),fur);hl(c,cx,fy-58,3.2,4.5,cream,.7);shape(c,ellP(cx-8,fy-42,8,5.5,rr,9),cream,{pen:false,edge:false,a:.95});shape(c,ellP(cx+8,fy-42,8,5.5,rr,9),cream,{pen:false,edge:false,a:.95});shape(c,ellP(cx,fy-40.5,6.5,5,rr,9),cream,{pen:false,edge:false,a:.95});
       const ey=fy-50;shape(c,ellP(cx-6,ey,2.2,3,rr,7,.02),'#4A3A3A',{pen:false,edge:false,a:1});shape(c,ellP(cx+6,ey,2.2,3,rr,7,.02),'#4A3A3A',{pen:false,edge:false,a:1});hl(c,cx-5.4,ey-1.1,.9,.9,'#fff',1);hl(c,cx+6.6,ey-1.1,.9,.9,'#fff',1);shape(c,ellP(cx,fy-44.5,2.3,1.7,rr,7,.02),'#4A3A3A',{pen:false,edge:false,a:1});curve(c,[{x:cx,y:fy-43},{x:cx,y:fy-41.6}],'#8A4E48',1,.85);curve(c,[{x:cx-3.2,y:fy-41.3},{x:cx,y:fy-39.6},{x:cx+3.2,y:fy-41.3}],'#8A4E48',1.1,.85);hl(c,cx-11.5,fy-45,3.2,2.2,'#F49AAA',.6);hl(c,cx+11.5,fy-45,3.2,2.2,'#F49AAA',.6);curve(c,[{x:cx-13,y:fy-42.5},{x:cx-19,y:fy-43.5}],INK,.7,.4);curve(c,[{x:cx+13,y:fy-42.5},{x:cx+19,y:fy-43.5}],INK,.7,.4);
-    },scene:(c)=>{const wheat=(x,base,top,lean)=>{curve(c,[{x:x,y:base},{x:x+lean*.4,y:(base+top)/2},{x:x+lean,y:top}],'#C9A65A',1.4,.9);hl(c,x+lean,top-3,2.6,5,'#F2CF70',.95);hl(c,x+lean-2.4,top+1,2.2,4,'#EBC45E',.9);hl(c,x+lean+2.4,top+1,2.2,4,'#EBC45E',.9);curve(c,[{x:x+lean,y:top-8},{x:x+lean,y:top-11}],'#C9A65A',.9,.8);};for(let k=0;k<20;k++){const x=142+k*6.4+rr()*3,top=88+rr()*24;wheat(x,148,top,(rr()-.5)*8);}for(let k=0;k<6;k++){const x=22+k*7+rr()*3,top=122+rr()*8;wheat(x,148,top,(rr()-.5)*6);}c.drawImage(SP.heart,146,26,24,26);c.drawImage(SP.heart,244,22,18,20);[[130,12],[196,20],[258,64]].forEach((p,k)=>c.drawImage(SP.spark[k%3],p[0],p[1],15,15));c.drawImage(SP.star,120,54,20,21);}}
+    },scene:(c)=>{const wheat=(x,base,top,lean)=>{curve(c,[{x:x,y:base},{x:x+lean*.4,y:(base+top)/2},{x:x+lean,y:top}],'#C9A65A',1.4,.9);hl(c,x+lean,top-3,2.6,5,'#F2CF70',.95);hl(c,x+lean-2.4,top+1,2.2,4,'#EBC45E',.9);hl(c,x+lean+2.4,top+1,2.2,4,'#EBC45E',.9);curve(c,[{x:x+lean,y:top-8},{x:x+lean,y:top-11}],'#C9A65A',.9,.8);};for(let k=0;k<20;k++){const x=142+k*6.4+rr()*3,top=88+rr()*24;wheat(x,148,top,(rr()-.5)*8);}for(let k=0;k<6;k++){const x=22+k*7+rr()*3,top=122+rr()*8;wheat(x,148,top,(rr()-.5)*6);}c.drawImage(SP.heart,146,26,24,26);c.drawImage(SP.heart,244,22,18,20);[[130,12],[196,20],[258,64]].forEach((p,k)=>c.drawImage(SP.spark[k%3],p[0],p[1],15,15));c.drawImage(SP.star,120,54,20,21);}},
+    {name:'El Rey del Principito',price:750,tunic:'#B79AD6',tunic2:'#9A7CC2',scarf:'#FFF6EA',tail:'#B79AD6',hair:'#F3EEF1',shoe:'#8A5B3F',kind:5,
+letter:'Mi deseo es que la vida te regale cosas bonitas, que nunca te falten motivos para sonreír y que encuentres felicidad en las pequeñas cosas.',
+bg:['#CFC3EA','#F4B8C4'],ground:'#B79AD6',
+draw:(c,o,cx,fy)=>{
+  const skin='#FDE4D0',robe=o.tunic,fur=o.scarf,gold='#F7D774',ink='#4A3A3A';
+  const spot=(x,y)=>{hl(c,x,y,1,1.7,ink,.85);};
+  // capa de atrás
+  shape(c,[{x:cx-14,y:fy-40},{x:cx+14,y:fy-40},{x:cx+25,y:fy-9},{x:cx+9,y:fy-1},{x:cx-9,y:fy-1},{x:cx-25,y:fy-9}],robe,{a:.95});
+  hl(c,cx+8,fy-18,8,12,o.tunic2,.45);
+  // ribete de armiño abajo
+  shape(c,ellP(cx,fy-3,23,4.6,rr,12,.03),fur);
+  [-17,-10,-3,5,12,18].forEach((dx,k)=>spot(cx+dx,fy-3+(k%2?1:-.5)));
+  // zapatos
+  shape(c,ellP(cx-6,fy-2,5,3,rr,8),o.shoe);
+  shape(c,ellP(cx+6,fy-2,5,3,rr,8),o.shoe);
+  // cuerpo y franja de armiño
+  shape(c,ellP(cx,fy-21,12,17,rr,12,.04),robe);
+  shape(c,ellP(cx,fy-19,4.6,15,rr,10,.04),fur,{pen:false,a:.95});
+  [[0,-30],[-1.5,-24],[1.5,-18],[-1,-12],[1,-7]].forEach(p=>spot(cx+p[0],fy+p[1]));
+  // cetro
+  curve(c,[{x:cx+17,y:fy-9},{x:cx+20,y:fy-28},{x:cx+21,y:fy-42}],'#C9A04A',1.8,.95);
+  shape(c,ellP(cx+21,fy-46,3.6,3.6,rr,8),gold);
+  hl(c,cx+21,fy-46,1.2,1.2,'#E7889A',.95);
+  // brazos y manos
+  shape(c,ellP(cx-15,fy-22,4.6,7.4,rr,8),robe);
+  shape(c,ellP(cx+15,fy-22,4.6,7.4,rr,8),robe);
+  hl(c,cx-15.5,fy-15.5,3,3,skin,.95);hl(c,cx+15.5,fy-15.5,3,3,skin,.95);
+  // cuello de armiño
+  shape(c,ellP(cx,fy-36,15,6,rr,12),fur);
+  [-10,-4,3,9].forEach((dx,k)=>spot(cx+dx,fy-35+(k%2?1.2:-.6)));
+  // pelo de los lados
+  shape(c,ellP(cx-14,fy-50,5.5,7.5,rr,8),o.hair,{pen:false});
+  shape(c,ellP(cx+14,fy-50,5.5,7.5,rr,8),o.hair,{pen:false});
+  // cara
+  shape(c,ellP(cx,fy-49,15.5,15,rr,14,.03),skin);
+  // cabello esponjoso
+  shape(c,ellP(cx-8,fy-60,6.5,5,rr,9),o.hair);
+  shape(c,ellP(cx+8,fy-60,6.5,5,rr,9),o.hair);
+  shape(c,ellP(cx,fy-62,7.5,5,rr,9),o.hair);
+  // ojos, cejas, mejillas
+  const ey=fy-50;
+  shape(c,ellP(cx-5.8,ey,2.2,3,rr,7,.02),ink,{pen:false,edge:false,a:1});
+  shape(c,ellP(cx+5.8,ey,2.2,3,rr,7,.02),ink,{pen:false,edge:false,a:1});
+  hl(c,cx-5.2,ey-1.1,.9,.9,'#fff',1);hl(c,cx+6.4,ey-1.1,.9,.9,'#fff',1);
+  curve(c,[{x:cx-9,y:fy-54.5},{x:cx-5.5,y:fy-56},{x:cx-2.5,y:fy-54.5}],'#CFC6CC',1.6,.9);
+  curve(c,[{x:cx+2.5,y:fy-54.5},{x:cx+5.5,y:fy-56},{x:cx+9,y:fy-54.5}],'#CFC6CC',1.6,.9);
+  hl(c,cx-10,fy-45,3.4,2.2,'#F49AAA',.6);hl(c,cx+10,fy-45,3.4,2.2,'#F49AAA',.6);
+  // barba y bigote
+  shape(c,ellP(cx,fy-38,10.5,5,rr,10),o.hair);
+  curve(c,[{x:cx-2,y:fy-40.6},{x:cx,y:fy-39.2},{x:cx+2,y:fy-40.6}],'#8A4E48',1,.8);
+  shape(c,ellP(cx-4.2,fy-43.5,4.6,2.3,rr,8),o.hair);
+  shape(c,ellP(cx+4.2,fy-43.5,4.6,2.3,rr,8),o.hair);
+  // corona
+  shape(c,[{x:cx-9,y:fy-61},{x:cx-10,y:fy-72},{x:cx-5,y:fy-67},{x:cx,y:fy-75},{x:cx+5,y:fy-67},{x:cx+10,y:fy-72},{x:cx+9,y:fy-61}],gold,{a:.97});
+  hl(c,cx,fy-63,8,1.8,'#E7889A',.85);
+  hl(c,cx-10,fy-72,1.2,1.2,'#F19AB0',.95);hl(c,cx,fy-75,1.2,1.2,'#F19AB0',.95);hl(c,cx+10,fy-72,1.2,1.2,'#F19AB0',.95);
+},
+scene:(c)=>{
+  // asteroide 325
+  shape(c,ellP(205,132,62,40,rr,14,.02),'#EBB294',{a:.95});
+  hl(c,190,122,14,6,'#D98F6F',.5);hl(c,226,130,10,5,'#D98F6F',.5);
+  // trono
+  shape(c,rectP(190,58,30,42,8,rr,1),'#D9788A');
+  shape(c,rectP(187,86,36,13,5,rr,1),'#C9677A');
+  shape(c,ellP(193,58,4,4,rr,8),'#F7D774');shape(c,ellP(217,58,4,4,rr,8),'#F7D774');
+  hl(c,205,72,8,10,'#F2A9B8',.55);
+  // capa de armiño cubriendo el asteroide
+  shape(c,ellP(205,100,44,9,rr,12,.03),'#FFF6EA');
+  [-32,-22,-12,-2,8,18,28,36].forEach((dx,k)=>hl(c,205+dx,100+(k%2?2:-1),1.2,2,'#4A3A3A',.85));
+  // corona flotando y decoración
+  c.drawImage(SP.heart,150,26,24,26);c.drawImage(SP.heart,244,34,18,20);
+  [[132,14],[196,18],[258,76],[152,96]].forEach((p,k)=>c.drawImage(SP.spark[k%3],p[0],p[1],15,15));
+  c.drawImage(SP.star,236,8,20,21);c.drawImage(SP.star,120,58,18,19);
+}}
 ];
 
 function drawChar(c,o,seed){
@@ -615,7 +689,7 @@ function genRow(){
   if(h>2200&&Math.random()<.12+d*.18)type=1;
   const p=mkPlat(x,topY,w,type);p.sp=.7+d*1.5+Math.random()*.4;
   if(type===0&&h>800&&Math.random()<.07)p.spring=true;
-  else if(type===0&&h>2000&&Math.random()<.005)p.plane=true;
+  else if(type===0&&h>800&&Math.random()<.03)p.plane=true;
   plats.push(p);
   if(h>3500&&Math.random()<.2+d*.2)plats.push(mkPlat(rand(8,W-w-8),topY+gap*rand(.35,.65),w,2));
   const r=Math.random();
